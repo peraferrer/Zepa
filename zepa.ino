@@ -1,5 +1,4 @@
 #include <Wire.h> 
-#include <LiquidCrystal_I2C.h>
 #include <Servo.h>
 #include <Event.h>
 #include <Timer.h>
@@ -7,8 +6,6 @@
 #include <SoftwareSerial.h>
 
 SoftwareSerial BTSerial(10, 11); // RX | TX
-
-LiquidCrystal_I2C lcd(0x27,16,2);  // set the LCD address to 0x27 for a 16 chars and 2 line display
 
 int inputPin = 8;
 int outputPin = 9;
@@ -26,13 +23,12 @@ boolean motor1SentidoGiro = false; // FALSE = LEFT | TRUE = RIGHT
 int distance = 0;
 
 Servo myservo;
-int giroServo = 90;
+int giroServo = 80;
 
 IRrecv irrecv(pinIR);
 decode_results results;
 
-boolean lcdBackLight = true;
-int modeInfoLCD = 1; // Valor que indica que datos se van a mostrar en la LCD
+int modeInfoLCD = 0; // Valor que indica que datos se van a mostrar en la LCD
 
 Timer timer;
 
@@ -47,12 +43,6 @@ void readDistance() {
 }
 
 void setup(void) {
-  // initialize the lcd 
-  lcd.init();                      
-  lcd.backlight();
-  lcd.home();
-  lcd.print("Distancia: ");
- 
   Serial.begin(9600);
   pinMode(inputPin, INPUT);
   pinMode(outputPin, OUTPUT);
@@ -89,7 +79,7 @@ void loop(void) {
     Serial.println(BTSerial.read());
   }
 
-  delay(50);
+//  delay(50);
   
 //  motorLeft();
 
@@ -107,13 +97,6 @@ void loop(void) {
       
       // Boton Power - Apaga o enciende el backlight del lcd
       case 0xFFA25D:
-        if (lcdBackLight) {
-          lcdBackLight = false;
-          lcd.noBacklight();
-        } else {
-          lcdBackLight = true;
-          lcd.backlight();
-        }
       break;
       
       // Boton >>
@@ -215,21 +198,21 @@ void motorSpeedStop() {
  */
  
  void zepUp() {
-  if (giroServo >= 60) {
-    giroServo -= 10;
+  if (giroServo >= 55) {
+    giroServo -= 5;
     myservo.write(giroServo);
   }
  }
  
  void zepDown() {
-  if (giroServo < 120) {
-    giroServo += 10;
+  if (giroServo <= 120) {
+    giroServo += 5;
     myservo.write(giroServo);
   }
  }
  
  void zepCenter() {
-  giroServo = 90;
+  giroServo = 80;
   myservo.write(giroServo);
  }
  
@@ -241,39 +224,15 @@ void refreshLCD() {
   // Definimos que opcion va salir por LCD
   switch (modeInfoLCD) {
     case 0:
-      lcd.clear();
-      lcd.home();
-      lcd.print("Dist.: ");
-      lcd.setCursor(7, 0);
-      lcd.print("        ");
-      lcd.setCursor(7, 0);
-      lcd.print(distance);
-      lcd.print(" CM");
-    
       Serial.print("Distancia: ");
       Serial.print(distance,DEC);
       Serial.println("CM");
-      
-      lcd.setCursor(0, 1);
-      lcd.print("Vel. Motor: ");
-      lcd.setCursor(12, 1);
-      lcd.print("        ");
-      lcd.setCursor(12, 1);
-      lcd.print(speedMotor1);
       
       Serial.print("Vel. Motor: ");
       Serial.println(speedMotor1, DEC);
 
       Serial.print("Giro Servo: ");
       Serial.println(giroServo, DEC);
-    break;
-    
-    case 1:
-      lcd.clear();
-      lcd.home();
-      lcd.print("   -# ZEPA #-   ");
-      lcd.setCursor(0, 1);
-      lcd.print("  garagelab.cc  ");
     break;
     
   }
